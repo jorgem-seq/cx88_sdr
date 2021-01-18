@@ -126,7 +126,7 @@ static int cx88sdr_alloc_risc_inst_buffer(struct cx88sdr_dev *dev)
 
 	memset(dev->risc_inst_virt, 0, dev->risc_inst_buff_size);
 
-	cx88sdr_pr_info("RISC Buffer size %uKiB\n",
+	cx88sdr_pr_info("RISC Buffer: %u KiB\n",
 			dev->risc_inst_buff_size / 1024);
 	return 0;
 }
@@ -160,7 +160,7 @@ static int cx88sdr_alloc_dma_buffer(struct cx88sdr_dev *dev)
 		dma_size += PAGE_SIZE;
 	}
 
-	cx88sdr_pr_info("DMA size %uMiB\n", dma_size / 1024 / 1024);
+	cx88sdr_pr_info("DMA Buffer: %u MiB\n", dma_size / 1024 / 1024);
 	return 0;
 }
 
@@ -198,7 +198,7 @@ static void cx88sdr_make_risc_instructions(struct cx88sdr_dev *dev)
 	*pp++ = RISC_JUMP;
 	*pp++ = loop_addr;
 
-	cx88sdr_pr_info("RISC Instructions using %uKiB of Buffer\n",
+	cx88sdr_pr_info("RISC Instructions: %u KiB\n",
 		       (uint32_t)(((void *)pp - (void *)dev->risc_inst_virt) / 1024));
 }
 
