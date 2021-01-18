@@ -136,7 +136,7 @@ static inline void mmio_iowrite32(struct cx88sdr_dev *dev, uint32_t reg, uint32_
 #define cx88sdr_pr_err(fmt, ...)	pr_err(KBUILD_MODNAME " %s: " fmt,		\
 						pci_name(dev->pdev), ##__VA_ARGS__)
 
-/* cx88sdr_v4l2.c */
+/* cx88_sdr_v4l2.c */
 extern const struct v4l2_ctrl_ops cx88sdr_ctrl_ops;
 extern const struct v4l2_ctrl_config cx88sdr_ctrl_input;
 extern const struct v4l2_ctrl_config cx88sdr_ctrl_rate;
