@@ -37,7 +37,7 @@ You will have to modify or remove the LPF from the PCB in order to use the entir
 Here is a screenshot with 2 gqrx instances running, the one on the right has an antenna connected:
 ![](img/2cards.png)
 
-Other gqrx cofigurations:
+Other gqrx configurations:
 
 #### 8-bit - cx88_sdr_8-bit.grc
 
