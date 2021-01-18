@@ -134,7 +134,8 @@ static const struct v4l2_file_operations cx88sdr_fops = {
 	.unlocked_ioctl	= video_ioctl2,
 };
 
-static int cx88sdr_querycap(struct file *file, void *priv, struct v4l2_capability *cap)
+static int cx88sdr_querycap(struct file *file, void __always_unused *priv,
+			    struct v4l2_capability *cap)
 {
 	struct cx88sdr_dev *dev = video_drvdata(file);
 
@@ -144,7 +145,9 @@ static int cx88sdr_querycap(struct file *file, void *priv, struct v4l2_capabilit
 	return 0;
 }
 
-static int cx88sdr_enum_fmt_sdr(struct file *file, void *priv, struct v4l2_fmtdesc *f)
+static int cx88sdr_enum_fmt_sdr(struct file __always_unused *file,
+				void __always_unused *priv,
+				struct v4l2_fmtdesc *f)
 {
 	if (f->index > 1)
 		return -EINVAL;
@@ -156,7 +159,9 @@ static int cx88sdr_enum_fmt_sdr(struct file *file, void *priv, struct v4l2_fmtde
 	return 0;
 }
 
-static int cx88sdr_try_fmt_sdr(struct file *file, void *priv, struct v4l2_format *f)
+static int cx88sdr_try_fmt_sdr(struct file __always_unused *file,
+			       void __always_unused *priv,
+			       struct v4l2_format *f)
 {
 	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
 	switch (f->fmt.sdr.pixelformat) {
@@ -174,7 +179,8 @@ static int cx88sdr_try_fmt_sdr(struct file *file, void *priv, struct v4l2_format
 	return 0;
 }
 
-static int cx88sdr_g_fmt_sdr(struct file *file, void *priv, struct v4l2_format *f)
+static int cx88sdr_g_fmt_sdr(struct file *file, void __always_unused *priv,
+			     struct v4l2_format *f)
 {
 	struct cx88sdr_dev *dev = video_drvdata(file);
 
@@ -184,7 +190,8 @@ static int cx88sdr_g_fmt_sdr(struct file *file, void *priv, struct v4l2_format *
 	return 0;
 }
 
-static int cx88sdr_s_fmt_sdr(struct file *file, void *priv, struct v4l2_format *f)
+static int cx88sdr_s_fmt_sdr(struct file *file, void __always_unused *priv,
+			     struct v4l2_format *f)
 {
 	struct cx88sdr_dev *dev = video_drvdata(file);
 

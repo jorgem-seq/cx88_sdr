@@ -202,7 +202,7 @@ static void cx88sdr_make_risc_instructions(struct cx88sdr_dev *dev)
 		       (uint32_t)(((void *)pp - (void *)dev->risc_inst_virt) / 1024));
 }
 
-static irqreturn_t cx88sdr_irq(int irq, void *dev_id)
+static irqreturn_t cx88sdr_irq(int __always_unused irq, void *dev_id)
 {
 	struct cx88sdr_dev *dev = dev_id;
 	int i, handled = 0;
@@ -221,7 +221,8 @@ out:
 	return IRQ_RETVAL(handled);
 }
 
-static int cx88sdr_probe(struct pci_dev *pdev, const struct pci_device_id *pci_id)
+static int cx88sdr_probe(struct pci_dev *pdev,
+			 const struct pci_device_id __always_unused *pci_id)
 {
 	struct cx88sdr_dev *dev;
 	struct v4l2_device *v4l2_dev;
