@@ -49,6 +49,9 @@ static int cx88sdr_open(struct file *file)
 	struct cx88sdr_fh *fh;
 
 	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
+	if (!fh)
+		return -ENOMEM;
+
 	v4l2_fh_init(&fh->fh, vdev);
 
 	fh->dev = dev;
