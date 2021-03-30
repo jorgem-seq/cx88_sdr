@@ -347,7 +347,7 @@ static int cx88sdr_probe(struct pci_dev *pdev,
 	if (ret)
 		goto free_v4l2;
 
-	cx88sdr_pr_info("irq: %d, MMIO: 0x%p, PCI latency: %d\n",
+	cx88sdr_pr_info("irq: %u, MMIO: 0x%p, PCI latency: %d\n",
 			dev->pdev->irq, dev->mmio, dev->pci_lat);
 	cx88sdr_pr_info("registered as %s\n",
 			video_device_node_name(&dev->vdev));
