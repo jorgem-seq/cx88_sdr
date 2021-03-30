@@ -26,7 +26,7 @@
 
 #include "cx88_sdr.h"
 
-#define	CX88SDR_V4L2_NAME	"CX2388x SDR V4L2"
+#define CX88SDR_V4L2_NAME		"CX2388x SDR V4L2"
 
 /* The base for the cx88_sdr driver controls. Total of 16 controls are reserved
  * for this driver */

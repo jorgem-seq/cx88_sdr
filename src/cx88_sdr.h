@@ -24,8 +24,8 @@
 #include <media/v4l2-ctrls.h>
 #include <media/v4l2-device.h>
 
-#define	CX88SDR_DRV_NAME		"CX2388x SDR"
-#define	CX88SDR_MAX_CARDS		32
+#define CX88SDR_DRV_NAME		"CX2388x SDR"
+#define CX88SDR_MAX_CARDS		32
 
 #define INTERRUPT_MASK			0x018888
 
