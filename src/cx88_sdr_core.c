@@ -229,7 +229,7 @@ static int cx88sdr_probe(struct pci_dev *pdev,
 	struct v4l2_ctrl_handler *hdl;
 	int ret;
 
-	if (cx88sdr_devcount == CX88SDR_MAX_CARDS)
+	if (cx88sdr_devcount >= CX88SDR_MAX_CARDS)
 		return -ENODEV;
 
 	ret = pci_enable_device(pdev);
