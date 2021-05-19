@@ -315,7 +315,7 @@ static int cx88sdr_probe(struct pci_dev *pdev,
 	ret = v4l2_device_register(&pdev->dev, v4l2_dev);
 	if (ret) {
 		v4l2_err(v4l2_dev, "can't register V4L2 device\n");
-		goto free_irq;
+		goto list_del_dev;
 	}
 
 	hdl = &dev->ctrl_handler;
@@ -354,7 +354,11 @@ static int cx88sdr_probe(struct pci_dev *pdev,
 free_v4l2:
 	v4l2_ctrl_handler_free(hdl);
 	v4l2_device_unregister(v4l2_dev);
-free_irq:
+list_del_dev:
+	mutex_lock(&cx88sdr_devlist_lock);
+	list_del(&dev->devlist);
+	mutex_unlock(&cx88sdr_devlist_lock);
+
 	free_irq(dev->irq, dev);
 free_mmio:
 	iounmap(dev->mmio);
