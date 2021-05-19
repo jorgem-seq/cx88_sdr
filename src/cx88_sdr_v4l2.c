@@ -30,7 +30,9 @@
 
 /* The base for the cx88_sdr driver controls. Total of 16 controls are reserved
  * for this driver */
+#ifndef V4L2_CID_USER_CX88SDR_BASE
 #define V4L2_CID_USER_CX88SDR_BASE	(V4L2_CID_USER_BASE + 0x1f10)
+#endif
 
 enum {
 	V4L2_CID_CX88SDR_INPUT = (V4L2_CID_USER_CX88SDR_BASE + 0),
