@@ -400,7 +400,7 @@ static void cx88sdr_remove(struct pci_dev *pdev)
 	pci_disable_device(pdev);
 }
 
-static struct pci_device_id cx88sdr_pci_tbl[] = {
+static const struct pci_device_id cx88sdr_pci_tbl[] = {
 	{
 		.vendor		= 0x14f1,
 		.device		= 0x8800,
