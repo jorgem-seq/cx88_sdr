@@ -71,12 +71,9 @@ static void cx88sdr_shutdown(struct cx88sdr_dev *dev)
 }
 
 static void cx88sdr_sram_setup(struct cx88sdr_dev *dev, uint32_t numbuf,
-			       uint32_t buffsize, uint32_t buffptr,
-			       uint32_t cdtptr)
+			       uint32_t buffsize, uint32_t buff, uint32_t cdt)
 {
 	int i;
-	uint32_t buff = buffptr;
-	uint32_t cdt = cdtptr;
 
 	/* Write CDT */
 	for (i = 0; i < numbuf; i++, buff += buffsize)
