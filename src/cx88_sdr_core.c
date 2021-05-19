@@ -401,14 +401,8 @@ static void cx88sdr_remove(struct pci_dev *pdev)
 }
 
 static const struct pci_device_id cx88sdr_pci_tbl[] = {
-	{
-		.vendor		= 0x14f1,
-		.device		= 0x8800,
-		.subvendor	= PCI_ANY_ID,
-		.subdevice	= PCI_ANY_ID,
-	}, {
-
-	}
+	{ PCI_DEVICE(0x14f1, 0x8800) },
+	{ 0, }
 };
 MODULE_DEVICE_TABLE(pci, cx88sdr_pci_tbl);
 
