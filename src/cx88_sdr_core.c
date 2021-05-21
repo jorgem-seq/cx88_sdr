@@ -279,7 +279,6 @@ static int cx88sdr_probe(struct pci_dev *pdev,
 	}
 
 	cx88sdr_shutdown(dev);
-	wmb(); /* Ensure card reset */
 
 	cx88sdr_sram_setup(dev, CLUSTER_BUF_NUM, CLUSTER_BUF_SIZE,
 			   CLUSTER_BUFFER_BASE, CDT_BASE);
@@ -379,7 +378,6 @@ static void cx88sdr_remove(struct pci_dev *pdev)
 	struct cx88sdr_dev *dev = container_of(v4l2_dev, struct cx88sdr_dev, v4l2_dev);
 
 	cx88sdr_shutdown(dev);
-	wmb(); /* Ensure card reset */
 
 	cx88sdr_pr_info("removing %s\n", video_device_node_name(&dev->vdev));
 
