@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * cx88_sdr_core.c - CX2388x SDR V4L2 Driver
  * Copyright (c) 2020 Jorge Maidana <jorgem.seq@gmail.com>
  *
  * This driver is a derivative of:
