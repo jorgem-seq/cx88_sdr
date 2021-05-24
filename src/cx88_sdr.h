@@ -89,7 +89,6 @@ enum {
 };
 
 struct cx88sdr_dev {
-	struct	list_head		devlist;
 	unsigned int			irq;
 	int				nr;
 	char				name[32];

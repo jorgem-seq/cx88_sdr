@@ -36,9 +36,6 @@ static int latency = 248;
 module_param(latency, int, 0);
 MODULE_PARM_DESC(latency, "Set PCI latency timer");
 
-static LIST_HEAD(cx88sdr_devlist);
-static DEFINE_MUTEX(cx88sdr_devlist_lock);
-
 static int cx88sdr_devcount;
 
 static void cx88sdr_pci_lat_set(struct cx88sdr_dev *dev)
@@ -304,16 +301,12 @@ static int cx88sdr_probe(struct pci_dev *pdev,
 	cx88sdr_agc_setup(dev);
 	cx88sdr_input_set(dev);
 
-	mutex_lock(&cx88sdr_devlist_lock);
-	list_add_tail(&dev->devlist, &cx88sdr_devlist);
-	mutex_unlock(&cx88sdr_devlist_lock);
-
 	mutex_init(&dev->vdev_mlock);
 	v4l2_dev = &dev->v4l2_dev;
 	ret = v4l2_device_register(&pdev->dev, v4l2_dev);
 	if (ret) {
 		v4l2_err(v4l2_dev, "can't register V4L2 device\n");
-		goto list_del_dev;
+		goto free_irq;
 	}
 
 	hdl = &dev->ctrl_handler;
@@ -352,11 +345,7 @@ static int cx88sdr_probe(struct pci_dev *pdev,
 free_v4l2:
 	v4l2_ctrl_handler_free(hdl);
 	v4l2_device_unregister(v4l2_dev);
-list_del_dev:
-	mutex_lock(&cx88sdr_devlist_lock);
-	list_del(&dev->devlist);
-	mutex_unlock(&cx88sdr_devlist_lock);
-
+free_irq:
 	free_irq(dev->irq, dev);
 free_mmio:
 	iounmap(dev->mmio);
@@ -380,9 +369,6 @@ static void cx88sdr_remove(struct pci_dev *pdev)
 
 	cx88sdr_pr_info("removing %s\n", video_device_node_name(&dev->vdev));
 
-	mutex_lock(&cx88sdr_devlist_lock);
-	list_del(&dev->devlist);
-	mutex_unlock(&cx88sdr_devlist_lock);
 	cx88sdr_devcount--;
 
 	video_unregister_device(&dev->vdev);
