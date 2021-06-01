@@ -73,10 +73,10 @@
 #define VBI_DMA_BUF_NUM			(VBI_DMA_SIZE / CLUSTER_BUF_SIZE)
 
 enum {
-	VMUX_00,
-	VMUX_01,
-	VMUX_02,
-	VMUX_03,
+	CX88SDR_INPUT_00, /* Pin 145 */
+	CX88SDR_INPUT_01, /* Pin 144 */
+	CX88SDR_INPUT_02, /* Pin 143 */
+	CX88SDR_INPUT_03, /* Pin 142 */
 };
 
 enum {
