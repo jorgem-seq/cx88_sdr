@@ -97,7 +97,7 @@ static ssize_t cx88sdr_read(struct file *file, char __user *buf, size_t size,
 		return result;
 
 	while (size) {
-		while ((size > 0) && (pnum != gp_cnt)) {
+		while (size && pnum != gp_cnt) {
 			uint32_t len;
 
 			/* Handle partial pages */
