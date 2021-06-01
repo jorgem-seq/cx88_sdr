@@ -182,8 +182,8 @@ static void cx88sdr_make_risc_instructions(struct cx88sdr_dev *dev)
 		dma_addr = dev->pgvec_phy[i];
 		*pp++ = dma_addr;
 		*pp++ = RISC_WRITE | CLUSTER_BUF_SIZE | (3 << 26) |
-		       (((irqt == 0) ? 1 : 0) << 24) |
-		       (((i < VBI_DMA_PAGES - 1) ? 1 : 3) << 16);
+			(((irqt == 0) ? 1 : 0) << 24) |
+			(((i < VBI_DMA_PAGES - 1) ? 1 : 3) << 16);
 		*pp++ = dma_addr + CLUSTER_BUF_SIZE;
 	}
 	*pp++ = RISC_JUMP;
