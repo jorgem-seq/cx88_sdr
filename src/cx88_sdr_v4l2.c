@@ -153,13 +153,16 @@ static int cx88sdr_enum_fmt_sdr(struct file __always_unused *file,
 				void __always_unused *priv,
 				struct v4l2_fmtdesc *f)
 {
-	if (f->index > 1)
-		return -EINVAL;
-
-	if (f->index == 0)
+	switch (f->index) {
+	case 0:
 		f->pixelformat = V4L2_SDR_FMT_CU8;
-	else if (f->index == 1)
+		break;
+	case 1:
 		f->pixelformat = V4L2_SDR_FMT_CU16LE;
+		break;
+	default:
+		return -EINVAL;
+	}
 	return 0;
 }
 
