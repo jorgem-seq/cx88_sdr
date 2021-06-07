@@ -59,8 +59,8 @@ static int cx88sdr_open(struct file *file)
 	file->private_data = &fh->fh;
 	v4l2_fh_add(&fh->fh);
 
-	dev->initial_page = mmio_ioread32(dev, MO_VBI_GPCNT) - 1;
-	mmio_iowrite32(dev, MO_PCI_INTMSK, 1);
+	dev->initial_page = ctrl_ioread32(dev, MO_VBI_GPCNT) - 1;
+	ctrl_iowrite32(dev, MO_PCI_INTMSK, 1);
 	return 0;
 }
 
@@ -70,7 +70,7 @@ static int cx88sdr_release(struct file *file)
 	struct cx88sdr_fh *fh = container_of(vfh, struct cx88sdr_fh, fh);
 	struct cx88sdr_dev *dev = fh->dev;
 
-	mmio_iowrite32(dev, MO_PCI_INTMSK, 0);
+	ctrl_iowrite32(dev, MO_PCI_INTMSK, 0);
 
 	v4l2_fh_del(&fh->fh);
 	v4l2_fh_exit(&fh->fh);
@@ -90,7 +90,7 @@ static ssize_t cx88sdr_read(struct file *file, char __user *buf, size_t size,
 	pnum = (dev->initial_page +
 	       ((*pos % VBI_DMA_SIZE) >> PAGE_SHIFT)) % VBI_DMA_PAGES;
 
-	gp_cnt = mmio_ioread32(dev, MO_VBI_GPCNT);
+	gp_cnt = ctrl_ioread32(dev, MO_VBI_GPCNT);
 	gp_cnt = (!gp_cnt) ? (VBI_DMA_PAGES - 1) : (gp_cnt - 1);
 
 	if ((pnum == gp_cnt) && (file->f_flags & O_NONBLOCK))
@@ -122,7 +122,7 @@ static ssize_t cx88sdr_read(struct file *file, char __user *buf, size_t size,
 			if (file->f_flags & O_NONBLOCK)
 				return result;
 
-			gp_cnt = mmio_ioread32(dev, MO_VBI_GPCNT);
+			gp_cnt = ctrl_ioread32(dev, MO_VBI_GPCNT);
 			gp_cnt = (!gp_cnt) ? (VBI_DMA_PAGES - 1) : (gp_cnt - 1);
 		}
 	}
@@ -246,24 +246,24 @@ const struct video_device cx88sdr_template = {
 
 static void cx88sdr_gain_set(struct cx88sdr_dev *dev)
 {
-	mmio_iowrite32(dev, MO_AGC_GAIN_ADJ4, (1 << 23) | (dev->gain << 16) |
+	ctrl_iowrite32(dev, MO_AGC_GAIN_ADJ4, (1 << 23) | (dev->gain << 16) |
 					      (0xff << 8));
 }
 
 void cx88sdr_agc_setup(struct cx88sdr_dev *dev)
 {
-	mmio_iowrite32(dev, MO_AGC_BACK_VBI, (1 << 25) | (0x100 << 16) | 0xfff);
-	mmio_iowrite32(dev, MO_AGC_SYNC_SLICER, 0x0);
-	mmio_iowrite32(dev, MO_AGC_SYNC_TIP2, (0x20 << 17) | 0xf);
-	mmio_iowrite32(dev, MO_AGC_SYNC_TIP3, (0x1e48 << 16) | (0xff << 8) | 0x8);
-	mmio_iowrite32(dev, MO_AGC_GAIN_ADJ2, (0x20 << 17) | 0xf);
-	mmio_iowrite32(dev, MO_AGC_GAIN_ADJ3, (0x28 << 16) | (0x28 << 8) | 0x50);
+	ctrl_iowrite32(dev, MO_AGC_BACK_VBI, (1 << 25) | (0x100 << 16) | 0xfff);
+	ctrl_iowrite32(dev, MO_AGC_SYNC_SLICER, 0x0);
+	ctrl_iowrite32(dev, MO_AGC_SYNC_TIP2, (0x20 << 17) | 0xf);
+	ctrl_iowrite32(dev, MO_AGC_SYNC_TIP3, (0x1e48 << 16) | (0xff << 8) | 0x8);
+	ctrl_iowrite32(dev, MO_AGC_GAIN_ADJ2, (0x20 << 17) | 0xf);
+	ctrl_iowrite32(dev, MO_AGC_GAIN_ADJ3, (0x28 << 16) | (0x28 << 8) | 0x50);
 	cx88sdr_gain_set(dev);
 }
 
 void cx88sdr_input_set(struct cx88sdr_dev *dev)
 {
-	mmio_iowrite32(dev, MO_INPUT_FORMAT, (1 << 16) | (dev->input << 14) |
+	ctrl_iowrite32(dev, MO_INPUT_FORMAT, (1 << 16) | (dev->input << 14) |
 					     (1 << 13) | (1 << 4) | 0x1);
 }
 
@@ -272,35 +272,35 @@ void cx88sdr_rate_set(struct cx88sdr_dev *dev)
 	switch (dev->rate) {
 	/* 8-bit */
 	case RATE_4FSC_8BIT: /* 14.318181 MHz */
-		mmio_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (3 << 1));
-		mmio_iowrite32(dev, MO_SCONV_REG, (1 << 17) * 2); // Freq / 2
-		mmio_iowrite32(dev, MO_PLL_REG, (1 << 26) | (0x14 << 20)); // Freq / 5 / 8 * 20
+		ctrl_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (3 << 1));
+		ctrl_iowrite32(dev, MO_SCONV_REG, (1 << 17) * 2); // Freq / 2
+		ctrl_iowrite32(dev, MO_PLL_REG, (1 << 26) | (0x14 << 20)); // Freq / 5 / 8 * 20
 		break;
 	case RATE_8FSC_8BIT: /* 28.636363 MHz */
-		mmio_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (3 << 1));
-		mmio_iowrite32(dev, MO_SCONV_REG, (1 << 17)); // Freq
-		mmio_iowrite32(dev, MO_PLL_REG, (0x10 << 20)); // Freq / 2 / 8 * 16
+		ctrl_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (3 << 1));
+		ctrl_iowrite32(dev, MO_SCONV_REG, (1 << 17)); // Freq
+		ctrl_iowrite32(dev, MO_PLL_REG, (0x10 << 20)); // Freq / 2 / 8 * 16
 		break;
 	case RATE_10FSC_8BIT: /* 35.795453 MHz */
-		mmio_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (3 << 1));
-		mmio_iowrite32(dev, MO_SCONV_REG, (1 << 17) * 4 / 5); // Freq * 5 / 4
-		mmio_iowrite32(dev, MO_PLL_REG, (0x14 << 20)); // Freq / 2 / 8 * 20
+		ctrl_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (3 << 1));
+		ctrl_iowrite32(dev, MO_SCONV_REG, (1 << 17) * 4 / 5); // Freq * 5 / 4
+		ctrl_iowrite32(dev, MO_PLL_REG, (0x14 << 20)); // Freq / 2 / 8 * 20
 		break;
 	/* 16-bit */
 	case RATE_2FSC_16BIT: /* 7.159090 MHz */
-		mmio_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (1 << 5) | (3 << 1));
-		mmio_iowrite32(dev, MO_SCONV_REG, (1 << 17) * 2); // Freq / 2
-		mmio_iowrite32(dev, MO_PLL_REG, (1 << 26) | (0x14 << 20)); // Freq / 5 / 8 * 20
+		ctrl_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (1 << 5) | (3 << 1));
+		ctrl_iowrite32(dev, MO_SCONV_REG, (1 << 17) * 2); // Freq / 2
+		ctrl_iowrite32(dev, MO_PLL_REG, (1 << 26) | (0x14 << 20)); // Freq / 5 / 8 * 20
 		break;
 	case RATE_4FSC_16BIT: /* 14.318181 MHz */
-		mmio_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (1 << 5) | (3 << 1));
-		mmio_iowrite32(dev, MO_SCONV_REG, (1 << 17)); // Freq
-		mmio_iowrite32(dev, MO_PLL_REG, (0x10 << 20)); // Freq / 2 / 8 * 16
+		ctrl_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (1 << 5) | (3 << 1));
+		ctrl_iowrite32(dev, MO_SCONV_REG, (1 << 17)); // Freq
+		ctrl_iowrite32(dev, MO_PLL_REG, (0x10 << 20)); // Freq / 2 / 8 * 16
 		break;
 	case RATE_5FSC_16BIT: /* 17.897726 MHz */
-		mmio_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (1 << 5) | (3 << 1));
-		mmio_iowrite32(dev, MO_SCONV_REG, (1 << 17) * 4 / 5); // Freq * 5 / 4
-		mmio_iowrite32(dev, MO_PLL_REG, (0x14 << 20)); // Freq / 2 / 8 * 20
+		ctrl_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (1 << 5) | (3 << 1));
+		ctrl_iowrite32(dev, MO_SCONV_REG, (1 << 17) * 4 / 5); // Freq * 5 / 4
+		ctrl_iowrite32(dev, MO_PLL_REG, (0x14 << 20)); // Freq / 2 / 8 * 20
 		break;
 	}
 }

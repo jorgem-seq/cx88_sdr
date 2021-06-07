@@ -105,7 +105,7 @@ struct cx88sdr_dev {
 	struct	pci_dev			*pdev;
 	dma_addr_t			risc_inst_phy;
 	dma_addr_t			pgvec_phy[VBI_DMA_PAGES + 1];
-	uint32_t	__iomem		*mmio;
+	uint32_t	__iomem		*ctrl;
 	uint32_t			risc_inst_buff_size;
 	uint32_t			*risc_inst_virt;
 	uint32_t			initial_page;
@@ -127,14 +127,14 @@ struct cx88sdr_dev {
 };
 
 /* Helpers */
-static inline uint32_t mmio_ioread32(struct cx88sdr_dev *dev, uint32_t reg)
+static inline uint32_t ctrl_ioread32(struct cx88sdr_dev *dev, uint32_t reg)
 {
-	return ioread32(dev->mmio + ((reg) >> 2));
+	return ioread32(dev->ctrl + ((reg) >> 2));
 }
 
-static inline void mmio_iowrite32(struct cx88sdr_dev *dev, uint32_t reg, uint32_t val)
+static inline void ctrl_iowrite32(struct cx88sdr_dev *dev, uint32_t reg, uint32_t val)
 {
-	iowrite32((val), dev->mmio + ((reg) >> 2));
+	iowrite32((val), dev->ctrl + ((reg) >> 2));
 }
 
 #define cx88sdr_pr_info(fmt, ...)	pr_info(KBUILD_MODNAME " %s: " fmt,		\

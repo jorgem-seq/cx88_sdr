@@ -51,19 +51,19 @@ static void cx88sdr_pci_lat_set(struct cx88sdr_dev *dev)
 static void cx88sdr_shutdown(struct cx88sdr_dev *dev)
 {
 	/* Disable RISC Controller and IRQs */
-	mmio_iowrite32(dev, MO_DEV_CNTRL2, 0);
+	ctrl_iowrite32(dev, MO_DEV_CNTRL2, 0);
 
 	/* Stop DMA transfers */
-	mmio_iowrite32(dev, MO_VID_DMACNTRL, 0);
+	ctrl_iowrite32(dev, MO_VID_DMACNTRL, 0);
 
 	/* Stop interrupts */
-	mmio_iowrite32(dev, MO_PCI_INTMSK, 0);
-	mmio_iowrite32(dev, MO_VID_INTMSK, 0);
+	ctrl_iowrite32(dev, MO_PCI_INTMSK, 0);
+	ctrl_iowrite32(dev, MO_VID_INTMSK, 0);
 
 	/* Stop capturing */
-	mmio_iowrite32(dev, MO_CAPTURE_CTRL, 0);
+	ctrl_iowrite32(dev, MO_CAPTURE_CTRL, 0);
 
-	mmio_iowrite32(dev, MO_VID_INTSTAT, ~0u);
+	ctrl_iowrite32(dev, MO_VID_INTSTAT, ~0u);
 }
 
 static void cx88sdr_sram_setup(struct cx88sdr_dev *dev, uint32_t numbuf,
@@ -73,36 +73,36 @@ static void cx88sdr_sram_setup(struct cx88sdr_dev *dev, uint32_t numbuf,
 
 	/* Write CDT */
 	for (i = 0; i < numbuf; i++, buff += buffsize)
-		mmio_iowrite32(dev, cdt + 16 * i, buff);
+		ctrl_iowrite32(dev, cdt + 16 * i, buff);
 
 	/* Write CMDS */
-	mmio_iowrite32(dev, CHN24_CMDS_BASE + 0, dev->risc_inst_phy);
-	mmio_iowrite32(dev, CHN24_CMDS_BASE + 4, cdt);
-	mmio_iowrite32(dev, CHN24_CMDS_BASE + 8, numbuf * 2);
-	mmio_iowrite32(dev, CHN24_CMDS_BASE + 12, RISC_INST_QUEUE);
-	mmio_iowrite32(dev, CHN24_CMDS_BASE + 16, 0x40);
+	ctrl_iowrite32(dev, CHN24_CMDS_BASE + 0, dev->risc_inst_phy);
+	ctrl_iowrite32(dev, CHN24_CMDS_BASE + 4, cdt);
+	ctrl_iowrite32(dev, CHN24_CMDS_BASE + 8, numbuf * 2);
+	ctrl_iowrite32(dev, CHN24_CMDS_BASE + 12, RISC_INST_QUEUE);
+	ctrl_iowrite32(dev, CHN24_CMDS_BASE + 16, 0x40);
 
 	/* Fill registers */
-	mmio_iowrite32(dev, MO_DMA24_PTR2, cdt);
-	mmio_iowrite32(dev, MO_DMA24_CNT1, (buffsize >> 3) - 1);
-	mmio_iowrite32(dev, MO_DMA24_CNT2, numbuf * 2);
+	ctrl_iowrite32(dev, MO_DMA24_PTR2, cdt);
+	ctrl_iowrite32(dev, MO_DMA24_CNT1, (buffsize >> 3) - 1);
+	ctrl_iowrite32(dev, MO_DMA24_CNT2, numbuf * 2);
 }
 
 static void cx88sdr_adc_setup(struct cx88sdr_dev *dev)
 {
-	mmio_iowrite32(dev, MO_VID_INTSTAT, mmio_ioread32(dev, MO_VID_INTSTAT));
+	ctrl_iowrite32(dev, MO_VID_INTSTAT, ctrl_ioread32(dev, MO_VID_INTSTAT));
 
-	mmio_iowrite32(dev, MO_OUTPUT_FORMAT, 0xf);
-	mmio_iowrite32(dev, MO_CONTR_BRIGHT, 0xff00);
-	mmio_iowrite32(dev, MO_COLOR_CTRL, (0xe << 4) | 0xe);
-	mmio_iowrite32(dev, MO_VBI_PACKET, (CLUSTER_BUF_SIZE << 17) | (2 << 11));
+	ctrl_iowrite32(dev, MO_OUTPUT_FORMAT, 0xf);
+	ctrl_iowrite32(dev, MO_CONTR_BRIGHT, 0xff00);
+	ctrl_iowrite32(dev, MO_COLOR_CTRL, (0xe << 4) | 0xe);
+	ctrl_iowrite32(dev, MO_VBI_PACKET, (CLUSTER_BUF_SIZE << 17) | (2 << 11));
 
 	/* Power down audio and chroma DAC+ADC */
-	mmio_iowrite32(dev, MO_AFECFG_IO, 0x12);
+	ctrl_iowrite32(dev, MO_AFECFG_IO, 0x12);
 
 	/* Start DMA */
-	mmio_iowrite32(dev, MO_DEV_CNTRL2, (1 << 5));
-	mmio_iowrite32(dev, MO_VID_DMACNTRL, (1 << 7) | (1 << 3));
+	ctrl_iowrite32(dev, MO_DEV_CNTRL2, (1 << 5));
+	ctrl_iowrite32(dev, MO_VID_DMACNTRL, (1 << 7) | (1 << 3));
 }
 
 static int cx88sdr_alloc_risc_inst_buffer(struct cx88sdr_dev *dev)
@@ -200,11 +200,11 @@ static irqreturn_t cx88sdr_irq(int __always_unused irq, void *dev_id)
 	uint32_t mask, status;
 
 	for (i = 0; i < 10; i++) {
-		status = mmio_ioread32(dev, MO_VID_INTSTAT);
-		mask = mmio_ioread32(dev, MO_VID_INTMSK);
+		status = ctrl_ioread32(dev, MO_VID_INTSTAT);
+		mask = ctrl_ioread32(dev, MO_VID_INTMSK);
 		if ((status & mask) == 0)
 			goto out;
-		mmio_iowrite32(dev, MO_VID_INTSTAT, status);
+		ctrl_iowrite32(dev, MO_VID_INTSTAT, status);
 		handled = 1;
 	}
 
@@ -267,8 +267,8 @@ static int cx88sdr_probe(struct pci_dev *pdev,
 
 	cx88sdr_make_risc_instructions(dev);
 
-	dev->mmio = pci_ioremap_bar(pdev, 0);
-	if (dev->mmio == NULL) {
+	dev->ctrl = pci_ioremap_bar(pdev, 0);
+	if (dev->ctrl == NULL) {
 		ret = -ENODEV;
 		cx88sdr_pr_err("can't ioremap BAR 0\n");
 		goto cx88sdr_free_dma_buffer;
@@ -282,7 +282,7 @@ static int cx88sdr_probe(struct pci_dev *pdev,
 	ret = request_irq(pdev->irq, cx88sdr_irq, IRQF_SHARED, KBUILD_MODNAME, dev);
 	if (ret) {
 		cx88sdr_pr_err("failed to request IRQ\n");
-		goto free_mmio;
+		goto free_ctrl;
 	}
 
 	dev->irq = pdev->irq;
@@ -333,12 +333,12 @@ static int cx88sdr_probe(struct pci_dev *pdev,
 	if (ret)
 		goto free_v4l2;
 
-	cx88sdr_pr_info("irq: %u, MMIO: 0x%p, PCI latency: %d\n",
-			dev->pdev->irq, dev->mmio, dev->pci_lat);
+	cx88sdr_pr_info("irq: %u, Ctrl MMIO: 0x%p, PCI latency: %d\n",
+			dev->pdev->irq, dev->ctrl, dev->pci_lat);
 	cx88sdr_pr_info("registered as %s\n",
 			video_device_node_name(&dev->vdev));
 
-	mmio_iowrite32(dev, MO_VID_INTMSK, INTERRUPT_MASK);
+	ctrl_iowrite32(dev, MO_VID_INTMSK, INTERRUPT_MASK);
 	cx88sdr_devcount++;
 	return 0;
 
@@ -347,8 +347,8 @@ free_v4l2:
 	v4l2_device_unregister(v4l2_dev);
 free_irq:
 	free_irq(dev->irq, dev);
-free_mmio:
-	iounmap(dev->mmio);
+free_ctrl:
+	iounmap(dev->ctrl);
 cx88sdr_free_dma_buffer:
 	cx88sdr_free_dma_buffer(dev);
 cx88sdr_free_risc_inst_buffer:
@@ -377,7 +377,7 @@ static void cx88sdr_remove(struct pci_dev *pdev)
 
 	/* Release resources */
 	free_irq(dev->irq, dev);
-	iounmap(dev->mmio);
+	iounmap(dev->ctrl);
 	cx88sdr_free_dma_buffer(dev);
 	cx88sdr_free_risc_inst_buffer(dev);
 	pci_release_regions(pdev);
