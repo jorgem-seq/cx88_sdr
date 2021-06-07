@@ -23,6 +23,14 @@
 #include <media/v4l2-ctrls.h>
 #include <media/v4l2-device.h>
 
+/* Real formats */
+#ifndef V4L2_SDR_FMT_RU8
+#define V4L2_SDR_FMT_RU8		V4L2_SDR_FMT_CU8
+#endif
+#ifndef V4L2_SDR_FMT_RU16LE
+#define V4L2_SDR_FMT_RU16LE		V4L2_SDR_FMT_CU16LE
+#endif
+
 #define CX88SDR_DRV_NAME		"CX2388x SDR"
 #define CX88SDR_MAX_CARDS		32
 

@@ -155,10 +155,10 @@ static int cx88sdr_enum_fmt_sdr(struct file __always_unused *file,
 {
 	switch (f->index) {
 	case 0:
-		f->pixelformat = V4L2_SDR_FMT_CU8;
+		f->pixelformat = V4L2_SDR_FMT_RU8;
 		break;
 	case 1:
-		f->pixelformat = V4L2_SDR_FMT_CU16LE;
+		f->pixelformat = V4L2_SDR_FMT_RU16LE;
 		break;
 	default:
 		return -EINVAL;
@@ -172,14 +172,14 @@ static int cx88sdr_try_fmt_sdr(struct file __always_unused *file,
 {
 	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
 	switch (f->fmt.sdr.pixelformat) {
-	case V4L2_SDR_FMT_CU8:
+	case V4L2_SDR_FMT_RU8:
 		f->fmt.sdr.buffersize = 1;
 		break;
-	case V4L2_SDR_FMT_CU16LE:
+	case V4L2_SDR_FMT_RU16LE:
 		f->fmt.sdr.buffersize = 2;
 		break;
 	default:
-		f->fmt.sdr.pixelformat = V4L2_SDR_FMT_CU8;
+		f->fmt.sdr.pixelformat = V4L2_SDR_FMT_RU8;
 		f->fmt.sdr.buffersize = 1;
 		break;
 	}
@@ -205,20 +205,20 @@ static int cx88sdr_s_fmt_sdr(struct file *file, void __always_unused *priv,
 	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
 
 	switch (f->fmt.sdr.pixelformat) {
-	case V4L2_SDR_FMT_CU8:
-		dev->pixelformat = V4L2_SDR_FMT_CU8;
+	case V4L2_SDR_FMT_RU8:
+		dev->pixelformat = V4L2_SDR_FMT_RU8;
 		dev->buffersize = 1;
 		f->fmt.sdr.buffersize = 1;
 		break;
-	case V4L2_SDR_FMT_CU16LE:
-		dev->pixelformat = V4L2_SDR_FMT_CU16LE;
+	case V4L2_SDR_FMT_RU16LE:
+		dev->pixelformat = V4L2_SDR_FMT_RU16LE;
 		dev->buffersize = 2;
 		f->fmt.sdr.buffersize = 2;
 		break;
 	default:
-		dev->pixelformat = V4L2_SDR_FMT_CU8;
+		dev->pixelformat = V4L2_SDR_FMT_RU8;
 		dev->buffersize = 1;
-		f->fmt.sdr.pixelformat = V4L2_SDR_FMT_CU8;
+		f->fmt.sdr.pixelformat = V4L2_SDR_FMT_RU8;
 		f->fmt.sdr.buffersize = 1;
 		break;
 	}
