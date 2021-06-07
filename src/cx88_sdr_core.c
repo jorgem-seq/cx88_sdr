@@ -291,13 +291,18 @@ static int cx88sdr_probe(struct pci_dev *pdev,
 	/* Set initial values */
 	dev->gain = 0;
 	dev->input = CX88SDR_INPUT_01;
-	dev->rate = RATE_8FSC_8BIT;
-	dev->pixelformat = V4L2_SDR_FMT_RU8; /* Fictitious */
-	dev->buffersize = 1; /* Fictitious */
+	dev->sdr_band = CX88SDR_BAND_01;
+	dev->pixelformat = V4L2_SDR_FMT_RU8;
+	dev->buffersize = 1;
 	snprintf(dev->name, sizeof(dev->name), CX88SDR_DRV_NAME " [%d]", dev->nr);
 
 	cx88sdr_adc_setup(dev);
-	cx88sdr_rate_set(dev);
+	ret = cx88sdr_adc_fmt_set(dev);
+	if (ret) {
+		cx88sdr_pr_err("failed to config ADC\n");
+		goto free_irq;
+	}
+
 	cx88sdr_agc_setup(dev);
 	cx88sdr_input_set(dev);
 
@@ -310,10 +315,9 @@ static int cx88sdr_probe(struct pci_dev *pdev,
 	}
 
 	hdl = &dev->ctrl_handler;
-	v4l2_ctrl_handler_init(hdl, 3);
+	v4l2_ctrl_handler_init(hdl, 2);
 	v4l2_ctrl_new_std(hdl, &cx88sdr_ctrl_ops, V4L2_CID_GAIN, 0, 31, 1, dev->gain);
 	v4l2_ctrl_new_custom(hdl, &cx88sdr_ctrl_input, NULL);
-	v4l2_ctrl_new_custom(hdl, &cx88sdr_ctrl_rate, NULL);
 	v4l2_dev->ctrl_handler = hdl;
 	if (hdl->error) {
 		ret = hdl->error;

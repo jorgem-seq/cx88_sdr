@@ -87,13 +87,13 @@ enum {
 	CX88SDR_INPUT_03, /* Pin 142 */
 };
 
+#define CX88SDR_XTAL_FREQ		28636363
+
+/* Values for 28636363 Hz xtal */
 enum {
-	RATE_4FSC_8BIT,
-	RATE_8FSC_8BIT,
-	RATE_10FSC_8BIT,
-	RATE_2FSC_16BIT,
-	RATE_4FSC_16BIT,
-	RATE_5FSC_16BIT
+	CX88SDR_BAND_00, /* 14318181 Hz (RU08),  7159090 Hz (RU16) */
+	CX88SDR_BAND_01, /* 28636363 Hz (RU08), 14318181 Hz (RU16) */
+	CX88SDR_BAND_02, /* 35795453 Hz (RU08), 17897726 Hz (RU16) */
 };
 
 struct cx88sdr_dev {
@@ -119,9 +119,9 @@ struct cx88sdr_dev {
 	struct	mutex			vdev_mlock;
 	u32				gain;
 	u32				input;
-	u32				rate;
 
 	/* V4L2 SDR */
+	u32				sdr_band;
 	u32				pixelformat;
 	u32				buffersize;
 };
@@ -145,10 +145,9 @@ static inline void ctrl_iowrite32(struct cx88sdr_dev *dev, uint32_t reg, uint32_
 /* cx88_sdr_v4l2.c */
 extern const struct v4l2_ctrl_ops cx88sdr_ctrl_ops;
 extern const struct v4l2_ctrl_config cx88sdr_ctrl_input;
-extern const struct v4l2_ctrl_config cx88sdr_ctrl_rate;
 extern const struct video_device cx88sdr_template;
 
-void cx88sdr_rate_set(struct cx88sdr_dev *dev);
+int cx88sdr_adc_fmt_set(struct cx88sdr_dev *dev);
 void cx88sdr_agc_setup(struct cx88sdr_dev *dev);
 void cx88sdr_input_set(struct cx88sdr_dev *dev);
 

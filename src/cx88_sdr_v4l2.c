@@ -35,12 +35,65 @@
 
 enum {
 	V4L2_CID_CX88SDR_INPUT = (V4L2_CID_USER_CX88SDR_BASE + 0),
-	V4L2_CID_CX88SDR_RATE,
 };
 
 struct cx88sdr_fh {
 	struct v4l2_fh fh;
 	struct cx88sdr_dev *dev;
+};
+
+static const struct v4l2_frequency_band cx88sdr_bands_ru08[] = {
+	[CX88SDR_BAND_00] = {
+		.tuner = 0,
+		.type = V4L2_TUNER_SDR,
+		.index = 0,
+		.capability = (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS),
+		.rangelow   = (CX88SDR_XTAL_FREQ / 2),
+		.rangehigh  = (CX88SDR_XTAL_FREQ / 2),
+	},
+	[CX88SDR_BAND_01] = { /* Default */
+		.tuner = 0,
+		.type = V4L2_TUNER_SDR,
+		.index = 1,
+		.capability = (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS),
+		.rangelow   = (CX88SDR_XTAL_FREQ),
+		.rangehigh  = (CX88SDR_XTAL_FREQ),
+	},
+	[CX88SDR_BAND_02] = {
+		.tuner = 0,
+		.type = V4L2_TUNER_SDR,
+		.index = 2,
+		.capability = (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS),
+		.rangelow   = (CX88SDR_XTAL_FREQ * 5 / 4),
+		.rangehigh  = (CX88SDR_XTAL_FREQ * 5 / 4),
+	},
+};
+
+static const struct v4l2_frequency_band cx88sdr_bands_ru16[] = {
+	[CX88SDR_BAND_00] = {
+		.tuner = 0,
+		.type = V4L2_TUNER_SDR,
+		.index = 0,
+		.capability = (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS),
+		.rangelow   = (CX88SDR_XTAL_FREQ / 4),
+		.rangehigh  = (CX88SDR_XTAL_FREQ / 4),
+	},
+	[CX88SDR_BAND_01] = {
+		.tuner = 0,
+		.type = V4L2_TUNER_SDR,
+		.index = 1,
+		.capability = (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS),
+		.rangelow   = (CX88SDR_XTAL_FREQ / 2),
+		.rangehigh  = (CX88SDR_XTAL_FREQ / 2),
+	},
+	[CX88SDR_BAND_02] = {
+		.tuner = 0,
+		.type = V4L2_TUNER_SDR,
+		.index = 2,
+		.capability = (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS),
+		.rangelow   = (CX88SDR_XTAL_FREQ * 5 / 8),
+		.rangehigh  = (CX88SDR_XTAL_FREQ * 5 / 8),
+	},
 };
 
 static int cx88sdr_open(struct file *file)
@@ -222,22 +275,146 @@ static int cx88sdr_s_fmt_sdr(struct file *file, void __always_unused *priv,
 		f->fmt.sdr.buffersize = 1;
 		break;
 	}
+	return cx88sdr_adc_fmt_set(dev);
+}
+
+static int cx88sdr_g_tuner(struct file *file, void __always_unused *priv,
+			   struct v4l2_tuner *t)
+{
+	struct cx88sdr_dev *dev = video_drvdata(file);
+
+	if (t->index > 0)
+		return -EINVAL;
+
+	switch (dev->pixelformat) {
+	case V4L2_SDR_FMT_RU8:
+		t->rangelow  = cx88sdr_bands_ru08[CX88SDR_BAND_00].rangelow;
+		t->rangehigh = cx88sdr_bands_ru08[CX88SDR_BAND_02].rangehigh;
+		break;
+	case V4L2_SDR_FMT_RU16LE:
+		t->rangelow  = cx88sdr_bands_ru16[CX88SDR_BAND_00].rangelow;
+		t->rangehigh = cx88sdr_bands_ru16[CX88SDR_BAND_02].rangehigh;
+		break;
+	default:
+		return -EINVAL;
+	}
+	strscpy(t->name, "ADC: CX2388x SDR", sizeof(t->name));
+	t->type = V4L2_TUNER_SDR;
+	t->capability = (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS);
 	return 0;
+}
+
+static int cx88sdr_s_tuner(struct file __always_unused *file,
+			   void __always_unused *priv,
+			   const struct v4l2_tuner *t)
+{
+	if (t->index > 0)
+		return -EINVAL;
+
+	return 0;
+}
+
+static int cx88sdr_enum_freq_bands(struct file *file, void __always_unused *priv,
+				   struct v4l2_frequency_band *band)
+{
+	struct cx88sdr_dev *dev = video_drvdata(file);
+
+	if (band->tuner > 0 || band->index > CX88SDR_BAND_02)
+		return -EINVAL;
+
+	switch (dev->pixelformat) {
+	case V4L2_SDR_FMT_RU8:
+		*band = cx88sdr_bands_ru08[band->index];
+		break;
+	case V4L2_SDR_FMT_RU16LE:
+		*band = cx88sdr_bands_ru16[band->index];
+		break;
+	default:
+		return -EINVAL;
+	}
+	return 0;
+}
+
+static int cx88sdr_g_frequency(struct file *file, void __always_unused *priv,
+			       struct v4l2_frequency *f)
+{
+	struct cx88sdr_dev *dev = video_drvdata(file);
+
+	if (f->tuner > 0)
+		return -EINVAL;
+
+	switch (dev->pixelformat) {
+	case V4L2_SDR_FMT_RU8:
+		f->frequency = cx88sdr_bands_ru08[dev->sdr_band].rangelow;
+		break;
+	case V4L2_SDR_FMT_RU16LE:
+		f->frequency = cx88sdr_bands_ru16[dev->sdr_band].rangelow;
+		break;
+	default:
+		return -EINVAL;
+	}
+	f->type = V4L2_TUNER_SDR;
+	return 0;
+}
+
+static int cx88sdr_s_frequency(struct file *file, void __always_unused *priv,
+			       const struct v4l2_frequency *f)
+{
+	struct cx88sdr_dev *dev = video_drvdata(file);
+
+	if (f->tuner > 0 || f->type != V4L2_TUNER_SDR)
+		return -EINVAL;
+
+	switch (dev->pixelformat) {
+	case V4L2_SDR_FMT_RU8:
+		if      (dev->sdr_band != CX88SDR_BAND_00 &&
+			 f->frequency   < cx88sdr_bands_ru08[CX88SDR_BAND_01].rangelow)
+			dev->sdr_band   = CX88SDR_BAND_00;
+		else if (dev->sdr_band != CX88SDR_BAND_01 &&
+			 f->frequency   > cx88sdr_bands_ru08[CX88SDR_BAND_00].rangehigh &&
+			 f->frequency   < cx88sdr_bands_ru08[CX88SDR_BAND_02].rangelow)
+			dev->sdr_band   = CX88SDR_BAND_01;
+		else if (dev->sdr_band != CX88SDR_BAND_02 &&
+			 f->frequency   > cx88sdr_bands_ru08[CX88SDR_BAND_01].rangehigh)
+			dev->sdr_band   = CX88SDR_BAND_02;
+		break;
+	case V4L2_SDR_FMT_RU16LE:
+		if      (dev->sdr_band != CX88SDR_BAND_00 &&
+			 f->frequency   < cx88sdr_bands_ru16[CX88SDR_BAND_01].rangelow)
+			dev->sdr_band   = CX88SDR_BAND_00;
+		else if (dev->sdr_band != CX88SDR_BAND_01 &&
+			 f->frequency   > cx88sdr_bands_ru16[CX88SDR_BAND_00].rangehigh &&
+			 f->frequency   < cx88sdr_bands_ru16[CX88SDR_BAND_02].rangelow)
+			dev->sdr_band   = CX88SDR_BAND_01;
+		else if (dev->sdr_band != CX88SDR_BAND_02 &&
+			 f->frequency   > cx88sdr_bands_ru16[CX88SDR_BAND_01].rangehigh)
+			dev->sdr_band   = CX88SDR_BAND_02;
+		break;
+	default:
+		return -EINVAL;
+	}
+	return cx88sdr_adc_fmt_set(dev);
 }
 
 static const struct v4l2_ioctl_ops cx88sdr_ioctl_ops = {
 	.vidioc_querycap		= cx88sdr_querycap,
-	.vidioc_enum_fmt_sdr_cap	= cx88sdr_enum_fmt_sdr, /* Fictitious */
-	.vidioc_try_fmt_sdr_cap		= cx88sdr_try_fmt_sdr, /* Fictitious */
-	.vidioc_g_fmt_sdr_cap		= cx88sdr_g_fmt_sdr, /* Fictitious */
-	.vidioc_s_fmt_sdr_cap		= cx88sdr_s_fmt_sdr, /* Fictitious */
+	.vidioc_enum_fmt_sdr_cap	= cx88sdr_enum_fmt_sdr,
+	.vidioc_try_fmt_sdr_cap		= cx88sdr_try_fmt_sdr,
+	.vidioc_g_fmt_sdr_cap		= cx88sdr_g_fmt_sdr,
+	.vidioc_s_fmt_sdr_cap		= cx88sdr_s_fmt_sdr,
+	.vidioc_g_tuner			= cx88sdr_g_tuner,
+	.vidioc_s_tuner			= cx88sdr_s_tuner,
+	.vidioc_enum_freq_bands		= cx88sdr_enum_freq_bands,
+	.vidioc_g_frequency		= cx88sdr_g_frequency,
+	.vidioc_s_frequency		= cx88sdr_s_frequency,
 	.vidioc_log_status		= v4l2_ctrl_log_status,
 	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
 };
 
 const struct video_device cx88sdr_template = {
-	.device_caps	= (V4L2_CAP_SDR_CAPTURE | V4L2_CAP_READWRITE),
+	.device_caps	= (V4L2_CAP_SDR_CAPTURE | V4L2_CAP_TUNER |
+			   V4L2_CAP_READWRITE),
 	.fops		= &cx88sdr_fops,
 	.ioctl_ops	= &cx88sdr_ioctl_ops,
 	.name		= CX88SDR_V4L2_NAME,
@@ -267,42 +444,36 @@ void cx88sdr_input_set(struct cx88sdr_dev *dev)
 					     (1 << 13) | (1 << 4) | 0x1);
 }
 
-void cx88sdr_rate_set(struct cx88sdr_dev *dev)
+int cx88sdr_adc_fmt_set(struct cx88sdr_dev *dev)
 {
-	switch (dev->rate) {
-	/* 8-bit */
-	case RATE_4FSC_8BIT: /* 14.318181 MHz */
+	switch (dev->pixelformat) {
+	case V4L2_SDR_FMT_RU8:
 		ctrl_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (3 << 1));
-		ctrl_iowrite32(dev, MO_SCONV_REG, (1 << 17) * 2); // Freq / 2
-		ctrl_iowrite32(dev, MO_PLL_REG, (1 << 26) | (0x14 << 20)); // Freq / 5 / 8 * 20
 		break;
-	case RATE_8FSC_8BIT: /* 28.636363 MHz */
-		ctrl_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (3 << 1));
-		ctrl_iowrite32(dev, MO_SCONV_REG, (1 << 17)); // Freq
-		ctrl_iowrite32(dev, MO_PLL_REG, (0x10 << 20)); // Freq / 2 / 8 * 16
-		break;
-	case RATE_10FSC_8BIT: /* 35.795453 MHz */
-		ctrl_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (3 << 1));
-		ctrl_iowrite32(dev, MO_SCONV_REG, (1 << 17) * 4 / 5); // Freq * 5 / 4
-		ctrl_iowrite32(dev, MO_PLL_REG, (0x14 << 20)); // Freq / 2 / 8 * 20
-		break;
-	/* 16-bit */
-	case RATE_2FSC_16BIT: /* 7.159090 MHz */
+	case V4L2_SDR_FMT_RU16LE:
 		ctrl_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (1 << 5) | (3 << 1));
-		ctrl_iowrite32(dev, MO_SCONV_REG, (1 << 17) * 2); // Freq / 2
-		ctrl_iowrite32(dev, MO_PLL_REG, (1 << 26) | (0x14 << 20)); // Freq / 5 / 8 * 20
 		break;
-	case RATE_4FSC_16BIT: /* 14.318181 MHz */
-		ctrl_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (1 << 5) | (3 << 1));
-		ctrl_iowrite32(dev, MO_SCONV_REG, (1 << 17)); // Freq
-		ctrl_iowrite32(dev, MO_PLL_REG, (0x10 << 20)); // Freq / 2 / 8 * 16
-		break;
-	case RATE_5FSC_16BIT: /* 17.897726 MHz */
-		ctrl_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (1 << 5) | (3 << 1));
-		ctrl_iowrite32(dev, MO_SCONV_REG, (1 << 17) * 4 / 5); // Freq * 5 / 4
-		ctrl_iowrite32(dev, MO_PLL_REG, (0x14 << 20)); // Freq / 2 / 8 * 20
-		break;
+	default:
+		return -EINVAL;
 	}
+
+	switch (dev->sdr_band) {
+	case CX88SDR_BAND_00:
+		ctrl_iowrite32(dev, MO_SCONV_REG, (1 << 17) * 2); // Freq / 2
+		ctrl_iowrite32(dev, MO_PLL_REG, (1 << 26) | (0x14 << 20)); // Freq / 5 / 8 * 20
+		break;
+	case CX88SDR_BAND_01:
+		ctrl_iowrite32(dev, MO_SCONV_REG, (1 << 17)); // Freq
+		ctrl_iowrite32(dev, MO_PLL_REG, (0x10 << 20)); // Freq / 2 / 8 * 16
+		break;
+	case CX88SDR_BAND_02:
+		ctrl_iowrite32(dev, MO_SCONV_REG, (1 << 17) * 4 / 5); // Freq * 5 / 4
+		ctrl_iowrite32(dev, MO_PLL_REG, (0x14 << 20)); // Freq / 2 / 8 * 20
+		break;
+	default:
+		return -EINVAL;
+	}
+	return 0;
 }
 
 static int cx88sdr_s_ctrl(struct v4l2_ctrl *ctrl)
@@ -318,10 +489,6 @@ static int cx88sdr_s_ctrl(struct v4l2_ctrl *ctrl)
 	case V4L2_CID_CX88SDR_INPUT:
 		dev->input = ctrl->val;
 		cx88sdr_input_set(dev);
-		break;
-	case V4L2_CID_CX88SDR_RATE:
-		dev->rate = ctrl->val;
-		cx88sdr_rate_set(dev);
 		break;
 	default:
 		return -EINVAL;
@@ -350,25 +517,4 @@ const struct v4l2_ctrl_config cx88sdr_ctrl_input = {
 	.max	= 3,
 	.def	= 1,
 	.qmenu	= cx88sdr_ctrl_input_menu_strings,
-};
-
-static const char * const cx88sdr_ctrl_rate_menu_strings[] = {
-	"14.318181 MHz, 8-bit",
-	"28.636363 MHz, 8-bit",
-	"35.795453 MHz, 8-bit",
-	" 7.159090 MHz, 16-bit",
-	"14.318181 MHz, 16-bit",
-	"17.897726 MHz, 16-bit",
-	NULL,
-};
-
-const struct v4l2_ctrl_config cx88sdr_ctrl_rate = {
-	.ops	= &cx88sdr_ctrl_ops,
-	.id	= V4L2_CID_CX88SDR_RATE,
-	.name	= "Sampling Rate",
-	.type	= V4L2_CTRL_TYPE_MENU,
-	.min	= 0,
-	.max	= 5,
-	.def	= 1,
-	.qmenu	= cx88sdr_ctrl_rate_menu_strings,
 };
