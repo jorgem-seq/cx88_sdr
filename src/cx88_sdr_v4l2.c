@@ -271,7 +271,7 @@ void cx88sdr_rate_set(struct cx88sdr_dev *dev)
 {
 	switch (dev->rate) {
 	/* 8-bit */
-	case RATE_4FSC_8BIT: /* 14.318182 MHz */
+	case RATE_4FSC_8BIT: /* 14.318181 MHz */
 		mmio_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (3 << 1));
 		mmio_iowrite32(dev, MO_SCONV_REG, (1 << 17) * 2); // Freq / 2
 		mmio_iowrite32(dev, MO_PLL_REG, (1 << 26) | (0x14 << 20)); // Freq / 5 / 8 * 20
@@ -281,23 +281,23 @@ void cx88sdr_rate_set(struct cx88sdr_dev *dev)
 		mmio_iowrite32(dev, MO_SCONV_REG, (1 << 17)); // Freq
 		mmio_iowrite32(dev, MO_PLL_REG, (0x10 << 20)); // Freq / 2 / 8 * 16
 		break;
-	case RATE_10FSC_8BIT: /* 35.795454 MHz */
+	case RATE_10FSC_8BIT: /* 35.795453 MHz */
 		mmio_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (3 << 1));
 		mmio_iowrite32(dev, MO_SCONV_REG, (1 << 17) * 4 / 5); // Freq * 5 / 4
 		mmio_iowrite32(dev, MO_PLL_REG, (0x14 << 20)); // Freq / 2 / 8 * 20
 		break;
 	/* 16-bit */
-	case RATE_2FSC_16BIT: /* 7.159091 MHz */
+	case RATE_2FSC_16BIT: /* 7.159090 MHz */
 		mmio_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (1 << 5) | (3 << 1));
 		mmio_iowrite32(dev, MO_SCONV_REG, (1 << 17) * 2); // Freq / 2
 		mmio_iowrite32(dev, MO_PLL_REG, (1 << 26) | (0x14 << 20)); // Freq / 5 / 8 * 20
 		break;
-	case RATE_4FSC_16BIT: /* 14.318182 MHz */
+	case RATE_4FSC_16BIT: /* 14.318181 MHz */
 		mmio_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (1 << 5) | (3 << 1));
 		mmio_iowrite32(dev, MO_SCONV_REG, (1 << 17)); // Freq
 		mmio_iowrite32(dev, MO_PLL_REG, (0x10 << 20)); // Freq / 2 / 8 * 16
 		break;
-	case RATE_5FSC_16BIT: /* 17.897727 MHz */
+	case RATE_5FSC_16BIT: /* 17.897726 MHz */
 		mmio_iowrite32(dev, MO_CAPTURE_CTRL, (1 << 6) | (1 << 5) | (3 << 1));
 		mmio_iowrite32(dev, MO_SCONV_REG, (1 << 17) * 4 / 5); // Freq * 5 / 4
 		mmio_iowrite32(dev, MO_PLL_REG, (0x14 << 20)); // Freq / 2 / 8 * 20
@@ -353,12 +353,12 @@ const struct v4l2_ctrl_config cx88sdr_ctrl_input = {
 };
 
 static const char * const cx88sdr_ctrl_rate_menu_strings[] = {
-	"14.318182 MHz, 8-bit",
+	"14.318181 MHz, 8-bit",
 	"28.636363 MHz, 8-bit",
-	"35.795454 MHz, 8-bit",
-	" 7.159091 MHz, 16-bit",
-	"14.318182 MHz, 16-bit",
-	"17.897727 MHz, 16-bit",
+	"35.795453 MHz, 8-bit",
+	" 7.159090 MHz, 16-bit",
+	"14.318181 MHz, 16-bit",
+	"17.897726 MHz, 16-bit",
 	NULL,
 };
 

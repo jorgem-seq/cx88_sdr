@@ -42,17 +42,17 @@ Other gqrx configurations:
 #### 8-bit - cx88_sdr_8-bit.grc
 
 ```
-file=/tmp/gr-fifo0,rate=14318182
+file=/tmp/gr-fifo0,rate=14318181
 file=/tmp/gr-fifo0,rate=28636363
-file=/tmp/gr-fifo0,rate=35795454
+file=/tmp/gr-fifo0,rate=35795453
 ```
 
 #### 16-bit - cx88_sdr_16-bit.grc
 
 ```
-file=/tmp/gr-fifo0,rate=7159091
-file=/tmp/gr-fifo0,rate=14318182
-file=/tmp/gr-fifo0,rate=17897727
+file=/tmp/gr-fifo0,rate=7159090
+file=/tmp/gr-fifo0,rate=14318181
+file=/tmp/gr-fifo0,rate=17897726
 ```
 
 ### Unloading the module
