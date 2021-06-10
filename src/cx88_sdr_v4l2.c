@@ -140,45 +140,39 @@ static ssize_t cx88sdr_read(struct file *file, char __user *buf, size_t size,
 	ssize_t result = 0;
 	uint32_t gp_cnt, pnum;
 
-	pnum = (dev->initial_page +
-	       ((*pos % VBI_DMA_SIZE) >> PAGE_SHIFT)) % VBI_DMA_PAGES;
+	pnum = (dev->initial_page + ((*pos % VBI_DMA_SIZE) >> PAGE_SHIFT)) %
+		VBI_DMA_PAGES;
 
+retry:
 	gp_cnt = ctrl_ioread32(dev, MO_VBI_GPCNT);
 	gp_cnt = (!gp_cnt) ? (VBI_DMA_PAGES - 1) : (gp_cnt - 1);
 
 	if ((pnum == gp_cnt) && (file->f_flags & O_NONBLOCK))
-		return result;
+		return -EAGAIN;
 
-	while (size) {
-		while (size && pnum != gp_cnt) {
-			uint32_t len;
+	while (size && pnum != gp_cnt) {
+		u32 len;
 
-			/* Handle partial pages */
-			len = (*pos % PAGE_SIZE) ?
-			      (PAGE_SIZE - (*pos % PAGE_SIZE)) : PAGE_SIZE;
-			if (len > size)
-				len = size;
-			if (copy_to_user(buf, dev->pgvec_virt[pnum] +
-					(*pos % PAGE_SIZE), len))
-				return -EFAULT;
+		/* Handle partial pages */
+		len = (*pos % PAGE_SIZE) ? (PAGE_SIZE - (*pos % PAGE_SIZE)) : PAGE_SIZE;
+		if (len > size)
+			len = size;
+		if (copy_to_user(buf, dev->pgvec_virt[pnum] + (*pos % PAGE_SIZE), len))
+			return -EFAULT;
 
-			memset(dev->pgvec_virt[pnum] + (*pos % PAGE_SIZE), 0, len);
+		memset(dev->pgvec_virt[pnum] + (*pos % PAGE_SIZE), 0, len);
 
-			result += len;
-			buf += len;
-			*pos += len;
-			size -= len;
-			pnum = (dev->initial_page +
-			       ((*pos % VBI_DMA_SIZE) >> PAGE_SHIFT)) % VBI_DMA_PAGES;
-		}
-		if (size) {
-			if (file->f_flags & O_NONBLOCK)
-				return result;
-
-			gp_cnt = ctrl_ioread32(dev, MO_VBI_GPCNT);
-			gp_cnt = (!gp_cnt) ? (VBI_DMA_PAGES - 1) : (gp_cnt - 1);
-		}
+		result += len;
+		buf    += len;
+		*pos   += len;
+		size   -= len;
+		pnum    = (dev->initial_page + ((*pos % VBI_DMA_SIZE) >> PAGE_SHIFT)) %
+			   VBI_DMA_PAGES;
 	}
+
+	if (size && !(file->f_flags & O_NONBLOCK))
+		goto retry;
+
 	return result;
 }
 
