@@ -69,7 +69,7 @@ static void cx88sdr_shutdown(struct cx88sdr_dev *dev)
 static void cx88sdr_sram_setup(struct cx88sdr_dev *dev, uint32_t buf_cnt,
 			       uint32_t buf_sz, uint32_t buf_addr, uint32_t cdt)
 {
-	int buf_idx;
+	u32 buf_idx;
 
 	/* Write CDT */
 	for (buf_idx = 0; buf_idx < buf_cnt; buf_idx++, buf_addr += buf_sz)
@@ -129,8 +129,7 @@ static void cx88sdr_free_risc_inst_buffer(struct cx88sdr_dev *dev)
 
 static int cx88sdr_alloc_dma_buffer(struct cx88sdr_dev *dev)
 {
-	int page;
-	u32 dma_size = 0;
+	u32 page, dma_size = 0;
 
 	for (page = 0; page < (VBI_DMA_PAGES + 1); page++) {
 		dev->dma_buf_pages[page] = NULL;
@@ -155,7 +154,7 @@ static int cx88sdr_alloc_dma_buffer(struct cx88sdr_dev *dev)
 
 static void cx88sdr_free_dma_buffer(struct cx88sdr_dev *dev)
 {
-	int page;
+	u32 page;
 
 	for (page = 0; page < VBI_DMA_PAGES; page++) {
 		if (dev->dma_buf_pages[page])
@@ -167,8 +166,7 @@ static void cx88sdr_free_dma_buffer(struct cx88sdr_dev *dev)
 
 static void cx88sdr_make_risc_instructions(struct cx88sdr_dev *dev)
 {
-	int page, irq_cnt = 0;
-	uint32_t dma_addr, loop_addr;
+	uint32_t dma_addr, loop_addr, page, irq_cnt = 0;
 	uint32_t *risc_buf = dev->risc_buf;
 
 	loop_addr = dev->risc_buf_addr + 4;
