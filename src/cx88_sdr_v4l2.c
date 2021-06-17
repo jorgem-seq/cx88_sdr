@@ -177,12 +177,17 @@ retry:
 	return result;
 }
 
+static __poll_t cx88sdr_poll(struct file *file, struct poll_table_struct *wait)
+{
+	return (EPOLLIN | EPOLLRDNORM | v4l2_ctrl_poll(file, wait));
+}
+
 static const struct v4l2_file_operations cx88sdr_fops = {
 	.owner		= THIS_MODULE,
 	.open		= cx88sdr_open,
 	.release	= cx88sdr_release,
 	.read		= cx88sdr_read,
-	.poll		= v4l2_ctrl_poll,
+	.poll		= cx88sdr_poll,
 	.unlocked_ioctl	= video_ioctl2,
 };
 
