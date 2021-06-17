@@ -226,7 +226,7 @@ static int cx88sdr_probe(struct pci_dev *pdev,
 
 	pci_set_master(pdev);
 
-	if (pci_set_dma_mask(pdev, DMA_BIT_MASK(32))) {
+	if (dma_set_mask(&pdev->dev, DMA_BIT_MASK(32))) {
 		dev_err(&pdev->dev, "no suitable DMA support available\n");
 		ret = -EFAULT;
 		goto disable_device;
