@@ -290,7 +290,7 @@ static int cx88sdr_probe(struct pci_dev *pdev,
 	dev->input = CX88SDR_INPUT_00;
 	dev->sdr_band = CX88SDR_BAND_01;
 	dev->pixelformat = V4L2_SDR_FMT_RU8;
-	dev->buffersize = 1;
+	dev->buffersize = PAGE_SIZE;
 	snprintf(dev->name, sizeof(dev->name), CX88SDR_DRV_NAME " [%d]", dev->nr);
 
 	cx88sdr_adc_setup(dev);

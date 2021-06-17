@@ -219,21 +219,22 @@ static int cx88sdr_enum_fmt_sdr(struct file __always_unused *file,
 	return 0;
 }
 
-static int cx88sdr_try_fmt_sdr(struct file __always_unused *file,
-			       void __always_unused *priv,
+static int cx88sdr_try_fmt_sdr(struct file *file, void __always_unused *priv,
 			       struct v4l2_format *f)
 {
+	struct cx88sdr_dev *dev = video_drvdata(file);
+
 	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
 	switch (f->fmt.sdr.pixelformat) {
 	case V4L2_SDR_FMT_RU8:
-		f->fmt.sdr.buffersize = 1;
+		f->fmt.sdr.buffersize = dev->buffersize;
 		break;
 	case V4L2_SDR_FMT_RU16LE:
-		f->fmt.sdr.buffersize = 2;
+		f->fmt.sdr.buffersize = dev->buffersize;
 		break;
 	default:
 		f->fmt.sdr.pixelformat = V4L2_SDR_FMT_RU8;
-		f->fmt.sdr.buffersize = 1;
+		f->fmt.sdr.buffersize = dev->buffersize;
 		break;
 	}
 	return 0;
@@ -260,19 +261,16 @@ static int cx88sdr_s_fmt_sdr(struct file *file, void __always_unused *priv,
 	switch (f->fmt.sdr.pixelformat) {
 	case V4L2_SDR_FMT_RU8:
 		dev->pixelformat = V4L2_SDR_FMT_RU8;
-		dev->buffersize = 1;
-		f->fmt.sdr.buffersize = 1;
+		f->fmt.sdr.buffersize = dev->buffersize;
 		break;
 	case V4L2_SDR_FMT_RU16LE:
 		dev->pixelformat = V4L2_SDR_FMT_RU16LE;
-		dev->buffersize = 2;
-		f->fmt.sdr.buffersize = 2;
+		f->fmt.sdr.buffersize = dev->buffersize;
 		break;
 	default:
 		dev->pixelformat = V4L2_SDR_FMT_RU8;
-		dev->buffersize = 1;
 		f->fmt.sdr.pixelformat = V4L2_SDR_FMT_RU8;
-		f->fmt.sdr.buffersize = 1;
+		f->fmt.sdr.buffersize = dev->buffersize;
 		break;
 	}
 	return cx88sdr_adc_fmt_set(dev);
