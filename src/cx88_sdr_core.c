@@ -76,9 +76,9 @@ static void cx88sdr_sram_setup(struct cx88sdr_dev *dev, uint32_t numbuf,
 		ctrl_iowrite32(dev, cdt + 16 * i, buff);
 
 	/* Write CMDS */
-	ctrl_iowrite32(dev, CHN24_CMDS_BASE + 0, dev->risc_inst_phy);
-	ctrl_iowrite32(dev, CHN24_CMDS_BASE + 4, cdt);
-	ctrl_iowrite32(dev, CHN24_CMDS_BASE + 8, numbuf * 2);
+	ctrl_iowrite32(dev, CHN24_CMDS_BASE +  0, dev->risc_inst_phy);
+	ctrl_iowrite32(dev, CHN24_CMDS_BASE +  4, cdt);
+	ctrl_iowrite32(dev, CHN24_CMDS_BASE +  8, numbuf * 2);
 	ctrl_iowrite32(dev, CHN24_CMDS_BASE + 12, RISC_INST_QUEUE);
 	ctrl_iowrite32(dev, CHN24_CMDS_BASE + 16, 0x40);
 

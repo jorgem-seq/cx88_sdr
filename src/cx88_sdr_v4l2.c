@@ -34,7 +34,7 @@
 #endif
 
 enum {
-	V4L2_CID_CX88SDR_INPUT = (V4L2_CID_USER_CX88SDR_BASE + 0),
+	V4L2_CID_CX88SDR_INPUT	= (V4L2_CID_USER_CX88SDR_BASE + 0),
 };
 
 struct cx88sdr_fh {
@@ -44,55 +44,55 @@ struct cx88sdr_fh {
 
 static const struct v4l2_frequency_band cx88sdr_bands_ru08[] = {
 	[CX88SDR_BAND_00] = {
-		.tuner = 0,
-		.type = V4L2_TUNER_SDR,
-		.index = 0,
-		.capability = (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS),
-		.rangelow   = (CX88SDR_XTAL_FREQ / 2),
-		.rangehigh  = (CX88SDR_XTAL_FREQ / 2),
+		.tuner		= 0,
+		.type		= V4L2_TUNER_SDR,
+		.index		= 0,
+		.capability	= (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS),
+		.rangelow	= (CX88SDR_XTAL_FREQ / 2),
+		.rangehigh	= (CX88SDR_XTAL_FREQ / 2),
 	},
 	[CX88SDR_BAND_01] = { /* Default */
-		.tuner = 0,
-		.type = V4L2_TUNER_SDR,
-		.index = 1,
-		.capability = (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS),
-		.rangelow   = (CX88SDR_XTAL_FREQ),
-		.rangehigh  = (CX88SDR_XTAL_FREQ),
+		.tuner		= 0,
+		.type		= V4L2_TUNER_SDR,
+		.index		= 1,
+		.capability	= (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS),
+		.rangelow	= (CX88SDR_XTAL_FREQ),
+		.rangehigh	= (CX88SDR_XTAL_FREQ),
 	},
 	[CX88SDR_BAND_02] = {
-		.tuner = 0,
-		.type = V4L2_TUNER_SDR,
-		.index = 2,
-		.capability = (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS),
-		.rangelow   = (CX88SDR_XTAL_FREQ * 5 / 4),
-		.rangehigh  = (CX88SDR_XTAL_FREQ * 5 / 4),
+		.tuner		= 0,
+		.type		= V4L2_TUNER_SDR,
+		.index		= 2,
+		.capability	= (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS),
+		.rangelow	= (CX88SDR_XTAL_FREQ * 5 / 4),
+		.rangehigh	= (CX88SDR_XTAL_FREQ * 5 / 4),
 	},
 };
 
 static const struct v4l2_frequency_band cx88sdr_bands_ru16[] = {
 	[CX88SDR_BAND_00] = {
-		.tuner = 0,
-		.type = V4L2_TUNER_SDR,
-		.index = 0,
-		.capability = (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS),
-		.rangelow   = (CX88SDR_XTAL_FREQ / 4),
-		.rangehigh  = (CX88SDR_XTAL_FREQ / 4),
+		.tuner		= 0,
+		.type		= V4L2_TUNER_SDR,
+		.index		= 0,
+		.capability	= (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS),
+		.rangelow	= (CX88SDR_XTAL_FREQ / 4),
+		.rangehigh	= (CX88SDR_XTAL_FREQ / 4),
 	},
 	[CX88SDR_BAND_01] = {
-		.tuner = 0,
-		.type = V4L2_TUNER_SDR,
-		.index = 1,
-		.capability = (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS),
-		.rangelow   = (CX88SDR_XTAL_FREQ / 2),
-		.rangehigh  = (CX88SDR_XTAL_FREQ / 2),
+		.tuner		= 0,
+		.type		= V4L2_TUNER_SDR,
+		.index		= 1,
+		.capability	= (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS),
+		.rangelow	= (CX88SDR_XTAL_FREQ / 2),
+		.rangehigh	= (CX88SDR_XTAL_FREQ / 2),
 	},
 	[CX88SDR_BAND_02] = {
-		.tuner = 0,
-		.type = V4L2_TUNER_SDR,
-		.index = 2,
-		.capability = (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS),
-		.rangelow   = (CX88SDR_XTAL_FREQ * 5 / 8),
-		.rangehigh  = (CX88SDR_XTAL_FREQ * 5 / 8),
+		.tuner		= 0,
+		.type		= V4L2_TUNER_SDR,
+		.index		= 2,
+		.capability	= (V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS),
+		.rangelow	= (CX88SDR_XTAL_FREQ * 5 / 8),
+		.rangehigh	= (CX88SDR_XTAL_FREQ * 5 / 8),
 	},
 };
 
@@ -157,6 +157,7 @@ retry:
 		len = (*pos % PAGE_SIZE) ? (PAGE_SIZE - (*pos % PAGE_SIZE)) : PAGE_SIZE;
 		if (len > size)
 			len = size;
+
 		if (copy_to_user(buf, dev->pgvec_virt[pnum] + (*pos % PAGE_SIZE), len))
 			return -EFAULT;
 
