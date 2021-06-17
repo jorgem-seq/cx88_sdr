@@ -513,8 +513,8 @@ const struct v4l2_ctrl_config cx88sdr_ctrl_input = {
 	.id	= V4L2_CID_CX88SDR_INPUT,
 	.name	= "Input",
 	.type	= V4L2_CTRL_TYPE_MENU,
-	.min	= 0,
-	.max	= 3,
-	.def	= 1,
+	.min	= CX88SDR_INPUT_00,
+	.max	= CX88SDR_INPUT_03,
+	.def	= CX88SDR_INPUT_00,
 	.qmenu	= cx88sdr_ctrl_input_menu_strings,
 };

@@ -287,7 +287,7 @@ static int cx88sdr_probe(struct pci_dev *pdev,
 
 	/* Set initial values */
 	dev->gain = 0;
-	dev->input = CX88SDR_INPUT_01;
+	dev->input = CX88SDR_INPUT_00;
 	dev->sdr_band = CX88SDR_BAND_01;
 	dev->pixelformat = V4L2_SDR_FMT_RU8;
 	dev->buffersize = 1;
