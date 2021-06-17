@@ -66,26 +66,26 @@ static void cx88sdr_shutdown(struct cx88sdr_dev *dev)
 	ctrl_iowrite32(dev, MO_VID_INTSTAT, ~0u);
 }
 
-static void cx88sdr_sram_setup(struct cx88sdr_dev *dev, uint32_t numbuf,
-			       uint32_t buffsize, uint32_t buff, uint32_t cdt)
+static void cx88sdr_sram_setup(struct cx88sdr_dev *dev, uint32_t buf_cnt,
+			       uint32_t buf_sz, uint32_t buf_addr, uint32_t cdt)
 {
-	int i;
+	int buf_idx;
 
 	/* Write CDT */
-	for (i = 0; i < numbuf; i++, buff += buffsize)
-		ctrl_iowrite32(dev, cdt + 16 * i, buff);
+	for (buf_idx = 0; buf_idx < buf_cnt; buf_idx++, buf_addr += buf_sz)
+		ctrl_iowrite32(dev, cdt + 16 * buf_idx, buf_addr);
 
 	/* Write CMDS */
-	ctrl_iowrite32(dev, CHN24_CMDS_BASE +  0, dev->risc_inst_phy);
+	ctrl_iowrite32(dev, CHN24_CMDS_BASE +  0, dev->risc_buf_addr);
 	ctrl_iowrite32(dev, CHN24_CMDS_BASE +  4, cdt);
-	ctrl_iowrite32(dev, CHN24_CMDS_BASE +  8, numbuf * 2);
+	ctrl_iowrite32(dev, CHN24_CMDS_BASE +  8, buf_cnt * 2);
 	ctrl_iowrite32(dev, CHN24_CMDS_BASE + 12, RISC_INST_QUEUE);
 	ctrl_iowrite32(dev, CHN24_CMDS_BASE + 16, 0x40);
 
 	/* Fill registers */
 	ctrl_iowrite32(dev, MO_DMA24_PTR2, cdt);
-	ctrl_iowrite32(dev, MO_DMA24_CNT1, (buffsize >> 3) - 1);
-	ctrl_iowrite32(dev, MO_DMA24_CNT2, numbuf * 2);
+	ctrl_iowrite32(dev, MO_DMA24_CNT1, (buf_sz >> 3) - 1);
+	ctrl_iowrite32(dev, MO_DMA24_CNT2, buf_cnt * 2);
 }
 
 static void cx88sdr_adc_setup(struct cx88sdr_dev *dev)
@@ -108,46 +108,44 @@ static void cx88sdr_adc_setup(struct cx88sdr_dev *dev)
 static int cx88sdr_alloc_risc_inst_buffer(struct cx88sdr_dev *dev)
 {
 	/* Add 1 page for sync instructions and jump */
-	dev->risc_inst_buff_size = VBI_DMA_BUF_NUM * CLUSTER_BUF_NUM + PAGE_SIZE;
-	dev->risc_inst_virt = dma_alloc_coherent(&dev->pdev->dev,
-						 dev->risc_inst_buff_size,
-						 &dev->risc_inst_phy, GFP_KERNEL);
-	if (!dev->risc_inst_virt)
+	dev->risc_buf_sz = (VBI_DMA_BUF_NUM * CLUSTER_BUF_NUM + PAGE_SIZE);
+	dev->risc_buf = dma_alloc_coherent(&dev->pdev->dev,
+					   dev->risc_buf_sz,
+					   &dev->risc_buf_addr, GFP_KERNEL);
+	if (!dev->risc_buf)
 		return -ENOMEM;
 
-	memset(dev->risc_inst_virt, 0, dev->risc_inst_buff_size);
-
-	cx88sdr_pr_info("RISC Buffer: %u KiB\n",
-			dev->risc_inst_buff_size / SZ_1K);
+	memset(dev->risc_buf, 0, dev->risc_buf_sz);
+	cx88sdr_pr_info("RISC Buffer: %u KiB\n", dev->risc_buf_sz / SZ_1K);
 	return 0;
 }
 
 static void cx88sdr_free_risc_inst_buffer(struct cx88sdr_dev *dev)
 {
-	if (dev->risc_inst_virt)
-		dma_free_coherent(&dev->pdev->dev, dev->risc_inst_buff_size,
-				  dev->risc_inst_virt, dev->risc_inst_phy);
+	if (dev->risc_buf)
+		dma_free_coherent(&dev->pdev->dev, dev->risc_buf_sz,
+				  dev->risc_buf, dev->risc_buf_addr);
 }
 
 static int cx88sdr_alloc_dma_buffer(struct cx88sdr_dev *dev)
 {
-	int i;
+	int page;
 	u32 dma_size = 0;
 
-	for (i = 0; i < (VBI_DMA_PAGES + 1); i++) {
-		dev->pgvec_virt[i] = NULL;
-		dev->pgvec_phy[i] = 0;
+	for (page = 0; page < (VBI_DMA_PAGES + 1); page++) {
+		dev->dma_buf_pages[page] = NULL;
+		dev->dma_pages_addr[page] = 0;
 	}
 
-	for (i = 0; i < VBI_DMA_PAGES; i++) {
+	for (page = 0; page < VBI_DMA_PAGES; page++) {
 		dma_addr_t dma_handle;
 
-		dev->pgvec_virt[i] = dma_alloc_coherent(&dev->pdev->dev,
-							PAGE_SIZE, &dma_handle,
-							GFP_KERNEL);
-		if (!dev->pgvec_virt[i])
+		dev->dma_buf_pages[page] = dma_alloc_coherent(&dev->pdev->dev,
+							      PAGE_SIZE, &dma_handle,
+							      GFP_KERNEL);
+		if (!dev->dma_buf_pages[page])
 			return -ENOMEM;
-		dev->pgvec_phy[i] = dma_handle;
+		dev->dma_pages_addr[page] = dma_handle;
 		dma_size += PAGE_SIZE;
 	}
 
@@ -157,40 +155,41 @@ static int cx88sdr_alloc_dma_buffer(struct cx88sdr_dev *dev)
 
 static void cx88sdr_free_dma_buffer(struct cx88sdr_dev *dev)
 {
-	int i;
+	int page;
 
-	for (i = 0; i < VBI_DMA_PAGES; i++) {
-		if (dev->pgvec_virt[i])
+	for (page = 0; page < VBI_DMA_PAGES; page++) {
+		if (dev->dma_buf_pages[page])
 			dma_free_coherent(&dev->pdev->dev, PAGE_SIZE,
-					  dev->pgvec_virt[i], dev->pgvec_phy[i]);
+					  dev->dma_buf_pages[page],
+					  dev->dma_pages_addr[page]);
 	}
 }
 
 static void cx88sdr_make_risc_instructions(struct cx88sdr_dev *dev)
 {
-	int i, irqt = 0;
+	int page, irq_cnt = 0;
 	uint32_t dma_addr, loop_addr;
-	uint32_t *pp = dev->risc_inst_virt;
+	uint32_t *risc_buf = dev->risc_buf;
 
-	loop_addr = dev->risc_inst_phy + 4;
-	*pp++ = RISC_SYNC | (3 << 16);
+	loop_addr = dev->risc_buf_addr + 4;
+	*risc_buf++ = RISC_SYNC | (3 << 16);
 
-	for (i = 0; i < VBI_DMA_PAGES; i++) {
-		irqt++;
-		irqt &= 0x1ff;
-		*pp++ = RISC_WRITE | CLUSTER_BUF_SIZE | (3 << 26);
-		dma_addr = dev->pgvec_phy[i];
-		*pp++ = dma_addr;
-		*pp++ = RISC_WRITE | CLUSTER_BUF_SIZE | (3 << 26) |
-			(((irqt == 0) ? 1 : 0) << 24) |
-			(((i < VBI_DMA_PAGES - 1) ? 1 : 3) << 16);
-		*pp++ = dma_addr + CLUSTER_BUF_SIZE;
+	for (page = 0; page < VBI_DMA_PAGES; page++) {
+		irq_cnt++;
+		irq_cnt &= 0x1ff;
+		*risc_buf++ = RISC_WRITE | CLUSTER_BUF_SIZE | (3 << 26);
+		dma_addr = dev->dma_pages_addr[page];
+		*risc_buf++ = dma_addr;
+		*risc_buf++ = RISC_WRITE | CLUSTER_BUF_SIZE | (3 << 26) |
+			      (((irq_cnt == 0) ? 1 : 0) << 24) |
+			      (((page < VBI_DMA_PAGES - 1) ? 1 : 3) << 16);
+		*risc_buf++ = dma_addr + CLUSTER_BUF_SIZE;
 	}
-	*pp++ = RISC_JUMP;
-	*pp++ = loop_addr;
+	*risc_buf++ = RISC_JUMP;
+	*risc_buf++ = loop_addr;
 
 	cx88sdr_pr_info("RISC Instructions: %u KiB\n",
-		       (uint32_t)(((void *)pp - (void *)dev->risc_inst_virt) / SZ_1K));
+		       (uint32_t)(((void *)risc_buf - (void *)dev->risc_buf) / SZ_1K));
 }
 
 static irqreturn_t cx88sdr_irq(int __always_unused irq, void *dev_id)
@@ -262,7 +261,7 @@ static int cx88sdr_probe(struct pci_dev *pdev,
 	ret = cx88sdr_alloc_dma_buffer(dev);
 	if (ret) {
 		cx88sdr_pr_err("can't alloc DMA buffers\n");
-		goto cx88sdr_free_risc_inst_buffer;
+		goto free_risc_inst_buffer;
 	}
 
 	cx88sdr_make_risc_instructions(dev);
@@ -271,13 +270,13 @@ static int cx88sdr_probe(struct pci_dev *pdev,
 	if (dev->ctrl == NULL) {
 		ret = -ENODEV;
 		cx88sdr_pr_err("can't ioremap BAR 0\n");
-		goto cx88sdr_free_dma_buffer;
+		goto free_dma_buffer;
 	}
 
 	cx88sdr_shutdown(dev);
 
 	cx88sdr_sram_setup(dev, CLUSTER_BUF_NUM, CLUSTER_BUF_SIZE,
-			   CLUSTER_BUFFER_BASE, CDT_BASE);
+			   CLUSTER_BUF_BASE, CDT_BASE);
 
 	ret = request_irq(pdev->irq, cx88sdr_irq, IRQF_SHARED, KBUILD_MODNAME, dev);
 	if (ret) {
@@ -353,9 +352,9 @@ free_irq:
 	free_irq(dev->irq, dev);
 free_ctrl:
 	iounmap(dev->ctrl);
-cx88sdr_free_dma_buffer:
+free_dma_buffer:
 	cx88sdr_free_dma_buffer(dev);
-cx88sdr_free_risc_inst_buffer:
+free_risc_inst_buffer:
 	cx88sdr_free_risc_inst_buffer(dev);
 free_pci_regions:
 	pci_release_regions(pdev);

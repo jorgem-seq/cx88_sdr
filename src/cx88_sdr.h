@@ -66,8 +66,8 @@
 #define CHN24_CMDS_BASE			0x180100
 #define RISC_INST_QUEUE			(CX_SRAM_BASE + 0x0800)
 #define CDT_BASE			(CX_SRAM_BASE + 0x1000)
-#define RISC_BUFFER_BASE		(CX_SRAM_BASE + 0x2000)
-#define CLUSTER_BUFFER_BASE		(CX_SRAM_BASE + 0x4000)
+#define RISC_BUF_BASE			(CX_SRAM_BASE + 0x2000)
+#define CLUSTER_BUF_BASE		(CX_SRAM_BASE + 0x4000)
 
 #define RISC_WRITE			0x10000000
 #define RISC_JUMP			0x70000000
@@ -103,13 +103,13 @@ struct cx88sdr_dev {
 
 	/* IO */
 	struct	pci_dev			*pdev;
-	dma_addr_t			risc_inst_phy;
-	dma_addr_t			pgvec_phy[VBI_DMA_PAGES + 1];
+	dma_addr_t			risc_buf_addr;
+	dma_addr_t			dma_pages_addr[VBI_DMA_PAGES + 1];
 	uint32_t	__iomem		*ctrl;
-	uint32_t			risc_inst_buff_size;
-	uint32_t			*risc_inst_virt;
-	uint32_t			initial_page;
-	void				*pgvec_virt[VBI_DMA_PAGES + 1];
+	uint32_t			risc_buf_sz;
+	uint32_t			*risc_buf;
+	uint32_t			start_page;
+	void				*dma_buf_pages[VBI_DMA_PAGES + 1];
 	int				pci_lat;
 
 	/* V4L2 */

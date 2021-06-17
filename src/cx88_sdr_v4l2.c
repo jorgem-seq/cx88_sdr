@@ -112,7 +112,7 @@ static int cx88sdr_open(struct file *file)
 	file->private_data = &fh->fh;
 	v4l2_fh_add(&fh->fh);
 
-	dev->initial_page = ctrl_ioread32(dev, MO_VBI_GPCNT) - 1;
+	dev->start_page = ctrl_ioread32(dev, MO_VBI_GPCNT) - 1;
 	ctrl_iowrite32(dev, MO_PCI_INTMSK, 1);
 	return 0;
 }
@@ -138,19 +138,19 @@ static ssize_t cx88sdr_read(struct file *file, char __user *buf, size_t size,
 	struct cx88sdr_fh *fh = container_of(vfh, struct cx88sdr_fh, fh);
 	struct cx88sdr_dev *dev = fh->dev;
 	ssize_t result = 0;
-	uint32_t gp_cnt, pnum;
+	uint32_t page, page_cnt;
 
-	pnum = (dev->initial_page + ((*pos % VBI_DMA_SIZE) >> PAGE_SHIFT)) %
+	page = (dev->start_page + ((*pos % VBI_DMA_SIZE) >> PAGE_SHIFT)) %
 		VBI_DMA_PAGES;
 
 retry:
-	gp_cnt = ctrl_ioread32(dev, MO_VBI_GPCNT);
-	gp_cnt = (!gp_cnt) ? (VBI_DMA_PAGES - 1) : (gp_cnt - 1);
+	page_cnt = ctrl_ioread32(dev, MO_VBI_GPCNT);
+	page_cnt = (!page_cnt) ? (VBI_DMA_PAGES - 1) : (page_cnt - 1);
 
-	if ((pnum == gp_cnt) && (file->f_flags & O_NONBLOCK))
+	if ((page == page_cnt) && (file->f_flags & O_NONBLOCK))
 		return -EAGAIN;
 
-	while (size && pnum != gp_cnt) {
+	while (size && page != page_cnt) {
 		u32 len;
 
 		/* Handle partial pages */
@@ -158,16 +158,16 @@ retry:
 		if (len > size)
 			len = size;
 
-		if (copy_to_user(buf, dev->pgvec_virt[pnum] + (*pos % PAGE_SIZE), len))
+		if (copy_to_user(buf, dev->dma_buf_pages[page] + (*pos % PAGE_SIZE), len))
 			return -EFAULT;
 
-		memset(dev->pgvec_virt[pnum] + (*pos % PAGE_SIZE), 0, len);
+		memset(dev->dma_buf_pages[page] + (*pos % PAGE_SIZE), 0, len);
 
 		result += len;
 		buf    += len;
 		*pos   += len;
 		size   -= len;
-		pnum    = (dev->initial_page + ((*pos % VBI_DMA_SIZE) >> PAGE_SHIFT)) %
+		page    = (dev->start_page + ((*pos % VBI_DMA_SIZE) >> PAGE_SHIFT)) %
 			   VBI_DMA_PAGES;
 	}
 
